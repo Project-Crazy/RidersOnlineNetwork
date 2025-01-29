@@ -1,5 +1,4 @@
 from socket import  *
-# serverHost = gethostname()
 serverPort = 3601
 serverSocket = socket(AF_INET, SOCK_STREAM)
 serverSocket.bind(('', serverPort))
