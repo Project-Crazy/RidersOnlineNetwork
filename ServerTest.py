@@ -1,5 +1,7 @@
 from socket import *
-
+from struct import pack, unpack
+import vgamepad as vg
+import time
 serverPort = 3601
 serverSocket = socket(AF_INET, SOCK_STREAM)
 serverSocket.bind(('', serverPort))
@@ -15,7 +17,33 @@ while True:
             conSock.close()
         else:
             # modifiedMessage = message.decode().upper()  # prints uppercase response
-            modifiedMessage = int.from_bytes(message, byteorder='big')  # receive guest player's inputs
+
+            # Unpack the entire struct for inputs, store it, then write the new controller state using vgamepad
+            # THIS SHOULD BE 30 BYTES IN LENGTH (0-47 = 48, or 0x30)
+            Input = {
+                "timeSinceLastInput": unpack('!L', message[:4])[0],  # u32
+                "unk4": unpack('!L', message[4:8])[0],  # u32
+                "holdFaceButtons": unpack('!L', message[8:12])[0],  # u32
+                "toggleFaceButtons": unpack('!L', message[12:16])[0],  # u32
+                "tapPulseFaceButtons": unpack('!L', message[16:20])[0],  # u32
+                "holdPulseFaceButtons": unpack('!L', message[20:24])[0],  # u32
+                "leftStickHorizontal": unpack('!b', message[24:25])[0],  # s8
+                "leftStickVertical": unpack('!b', message[25:26])[0],  # s8
+                "leftTriggerAnalog": unpack('!B', message[26:27])[0],  # u8
+                "rightTriggerAnalog": unpack('!B', message[27:28])[0],  # u8
+                "rightStickHorizontal": unpack('!b', message[28:29])[0],  # s8
+                "rightStickVertical": unpack('!b', message[29:30])[0],  # s8
+                "port": unpack('!B', message[30:31])[0],  # u8, maybe u16?
+                "collisionFlag1": unpack('!H', message[31:33])[0],  # u16
+                "collisionFlag2": unpack('!H', message[33:35])[0],  # u16
+                "initStatus2": unpack('!L', message[35:39])[0],  # u32
+                "initStatus": unpack('!?', message[39:40])[0],  # bool
+                "pauseStatus": unpack('!?', message[40:41])[0],  # bool
+                "filler4": unpack('6p', message[41:47])[0]  # unknown...
+            }
+
+            # The vgamepad state should be repeated until new inputs are received (which this loop allows us to do).
+
+            modifiedMessage = Input["holdFaceButtons"]  # receive guest player's inputs
             print("Received inputs: ", hex(modifiedMessage))
             conSock.send(modifiedMessage.to_bytes(2, 'big'))  # send back our own // .encode()
-            # TODO: set up localhost test to write player 2's inputs to dolphin mem engine.
