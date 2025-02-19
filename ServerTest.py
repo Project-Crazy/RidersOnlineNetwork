@@ -10,6 +10,10 @@ while True:
     isConnected = True
     conSock, addr = serverSocket.accept()
     print('Riders Online Network is ready to receive inputs from: ', addr)
+    gamepad = vg.VX360Gamepad()
+    gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+    gamepad.update()
+    gamepad.reset()
     while isConnected:
         message = conSock.recv(2048)
         if not message:
@@ -42,7 +46,23 @@ while True:
                 "filler4": unpack('6p', message[41:47])[0]  # unknown...
             }
 
+            gamepad.reset()
+
             # The vgamepad state should be repeated until new inputs are received (which this loop allows us to do).
+            Input['leftStickHorizontal'] = (Input['leftStickHorizontal'] << 8)
+            Input['leftStickVertical'] = (Input['leftStickVertical'] << 8)
+            Input['rightStickHorizontal'] = (Input['rightStickHorizontal'] << 8)
+            Input['rightStickVertical'] = (Input['rightStickVertical'] << 8)
+
+            gamepad.left_joystick(x_value=Input["leftStickHorizontal"], y_value=Input["leftStickVertical"])
+            gamepad.right_joystick(x_value=Input["rightStickHorizontal"], y_value=Input["rightStickVertical"])
+
+            # buttonCheck = {
+            #
+            # }
+            # gamepad.press_button(button=vg.XUSB_BUTTON.)
+
+            gamepad.update()
 
             modifiedMessage = Input["holdFaceButtons"]  # receive guest player's inputs
             print("Received inputs: ", hex(modifiedMessage))

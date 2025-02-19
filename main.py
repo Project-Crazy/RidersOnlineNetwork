@@ -8,7 +8,7 @@ from enum import Enum
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 3601
 
-PlayerPtr = 0x805369a0
+PlayerPtr = 0x80526580
 PlayerStructLength = 0x1080
 
 dolphin_memory_engine.hook()
@@ -112,7 +112,8 @@ def sendAndReceive(tcpClientSocket):
     which we can handle elsewhere.
     """
 
-    newInputTimer = dolphin_memory_engine.read_word(PlayerInput.timeSinceLastInput.value)
+    # newInputTimer = dolphin_memory_engine.read_word(PlayerInput.timeSinceLastInput.value)
+    newInputTimer = 0
 
     if newInputTimer == 0:
         Input = {
